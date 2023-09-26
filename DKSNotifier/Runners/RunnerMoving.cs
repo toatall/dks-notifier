@@ -37,12 +37,12 @@ namespace DKSNotifier.Runners
             return new EntityMoving()
             {
                 Id = record["LINK"].ToString().Trim(),
-                OrgName = record["NAME"].ToString().Trim(),
-                Fio = string.Format("{0} {1} {2}",
-                    record["FM"].ToString().Trim(), record["IM"].ToString().Trim(), record["OT"].ToString().Trim()),
+                OrgName = record["DEP_NAME"].ToString().Trim(),
+                Login = record["LOGIN"].ToString().Trim(),
+                Fio = record["FIO"].ToString().Trim(),
                 TabNum = record["TAB_NUM"].ToString().Trim(),
-                DepNameOld = record["OLD_SUBDIV"].ToString(),
-                PostOld = record["OLD_POST"].ToString(),
+                DepNameOld = record["SUBDIV"].ToString(),
+                PostOld = record["POST"].ToString(),
                 DepNameNew = record["NEW_SUBDIV"].ToString(),
                 PostNew = record["NEW_POST"].ToString(),
                 Date = DateTime.Parse(record["DATE_BEGIN"].ToString()),
@@ -64,6 +64,7 @@ namespace DKSNotifier.Runners
                             <table style='margin-bottom: 5rem;'>                                
 	                            <tr>
 		                            <th>Табельный номер</th>
+                                    <th>Учетная запись</th>
                                     <th>ФИО</th>
                                     <th>Дата</th>
                                     <th>Из отдела, должность</th>
@@ -75,11 +76,13 @@ namespace DKSNotifier.Runners
                         <tr>
 		                    <td>{0}</td>
 		                    <td>{1}</td>
-                            <td>{2:dd.MM.yyyy}</td>
-                            <td>{3}, {4}</td>
-                            <td>{5}, {6}</td>
+                            <td>{2}</td>
+                            <td>{3:dd.MM.yyyy}</td>
+                            <td>{4}, {5}</td>
+                            <td>{6}, {7}</td>
                         </tr>",
                         entity.TabNum,
+                        entity.Login,
                         entity.Fio,
                         entity.Date,
                         entity.DepNameOld,
@@ -100,7 +103,7 @@ namespace DKSNotifier.Runners
         {
             foreach (EntityMoving entity in entities)
             {
-                xmlStorage.Add(entity.TypeEntity(), entity.GetUnique(), entity.TabNum.Trim(), entity.Fio.Trim(),
+                xmlStorage.Add(entity.TypeEntity(), entity.GetUnique(), entity.TabNum.Trim(), entity.Login, entity.Fio.Trim(),
                     string.Format("дата: {0}, предыдущий отдел: {1}, новый отдел: {2}, предыдущая должность: {3}, новая должность: {4}",
                         entity.Date.ToShortDateString(), entity.DepNameOld.Trim(), entity.DepNameNew.Trim(), entity.PostOld.Trim(), entity.PostNew.Trim())
                 );

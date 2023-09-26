@@ -34,13 +34,14 @@ namespace DKSNotifier.Runners
         {
             return new EntityVacation()
             {
-                Id = record["LINK"].ToString(),
-                Fio = record["FIO"].ToString(),
-                Post = record["POST"].ToString(),
-                Department = record["SUBDIV"].ToString(),
-                TabNum = record["TAB_NUM"].ToString(),
-                TypeName = record["TYPE_NAME"].ToString(),
-                Days = int.Parse(record["COUNT_DAYS"].ToString()),
+                Id = record["LINK"].ToString().Trim(),
+                Fio = record["FIO"].ToString().Trim(),
+                Post = record["POST"].ToString().Trim(),
+                Login = record["LOGIN"].ToString().Trim(),
+                Department = record["SUBDIV"].ToString().Trim(),
+                TabNum = record["TAB_NUM"].ToString().Trim(),
+                TypeName = record["TYPE_NAME"].ToString().Trim(),
+                Days = int.Parse(record["COUNT_DAYS"].ToString().Trim()),
                 DateBegin = DateTime.Parse(record["DATE_BEGIN"].ToString()),
                 DateEnd = DateTime.Parse(record["DATE_END_REAL"].ToString())
             };
@@ -61,6 +62,7 @@ namespace DKSNotifier.Runners
                             <table style='margin-bottom: 5rem;'>                                
 	                            <tr>
 		                            <th>Табельный номер</th>
+                                    <th>Учетная запись</th>
                                     <th>ФИО</th>
                                     <th>Отдел</th>
                                     <th>Должность</th>
@@ -76,11 +78,13 @@ namespace DKSNotifier.Runners
 		                    <td>{1}</td>
                             <td>{2}</td>
                             <td>{3}</td>
-                            <td>{4:dd.MM.yyyy} - {5:dd.MM.yyyy}</td>
-                            <td>{6}</td>
+                            <td>{4}</td>
+                            <td>{5:dd.MM.yyyy} - {6:dd.MM.yyyy}</td>
                             <td>{7}</td>
+                            <td>{8}</td>
                         </tr>",
                         entity.TabNum,
+                        entity.Login,
                         entity.Fio,
                         entity.Department,
                         entity.Post,
@@ -102,7 +106,7 @@ namespace DKSNotifier.Runners
         {
             foreach (EntityVacation entity in entities)
             {
-                xmlStorage.Add(entity.TypeEntity(), entity.GetUnique(), entity.TabNum.Trim(), entity.Fio.Trim(),
+                xmlStorage.Add(entity.TypeEntity(), entity.GetUnique(), entity.TabNum.Trim(), entity.Login, entity.Fio.Trim(),
                     string.Format("дата начала: {0}, дата окончания: {1}, количество дней: {2}, вид отпуска: {3}",
                         entity.DateBegin.ToShortDateString(), entity.DateEnd.ToShortDateString(), entity.Days, entity.TypeName.Trim())
                 );

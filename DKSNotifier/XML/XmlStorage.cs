@@ -70,15 +70,16 @@ namespace DKSNotifier.XML
         /// <param name="tabNum"></param>
         /// <param name="fio"></param>
         /// <param name="description"></param>
-        public void Add(string type, string unid, string tabNum, string fio, string description = "")
+        public void Add(string type, string unid, string tabNum, string login, string fio, string description = "")
         {
             if (doc.Root != null)
             {
-                log.Info(string.Format("Сохранение записи в xml-файл: тип={0}, табельный номер={1}, ФИО={2}", type, tabNum, fio));
+                log.Info(string.Format("Сохранение записи в xml-файл: тип={0}, табельный номер={1}, УЗ={2}, ФИО={3}", type, tabNum, login, fio));
                 doc.Root.Add(new XElement("Node",
                     new XAttribute("Type", type),
                     new XAttribute("Unid", unid),
                     new XAttribute("TabNum", tabNum),
+                    new XAttribute("Login", login),
                     new XAttribute("Fio", fio),
                     new XAttribute("Description", description)
                 ));

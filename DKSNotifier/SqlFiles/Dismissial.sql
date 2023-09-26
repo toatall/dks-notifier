@@ -2,7 +2,7 @@
 
 DECLARE @dDate1 DATETIME, @dDate2 DATETIME, @dNow DATETIME, @nOrderItemStatus INT, @Days INT 
 
-SET @Days = 30 -- количество дней +- от текущей даты
+SET @Days = 4 -- количество дней +- от текущей даты
 SET @nOrderItemStatus = 1 -- статус пунктов приказа
 
 SET @dDate1 = DATEADD(DAY, -@Days, GETDATE())

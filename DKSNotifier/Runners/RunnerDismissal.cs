@@ -33,19 +33,7 @@ namespace DKSNotifier.Runners
         protected override IEntity FillEntity(IDataRecord record)
         {
             return new EntityDismissal()
-            {
-                /*
-                Id = record["LINK"].ToString().Trim(),
-                OrgName = record["FULL_NAME"].ToString().Trim(),
-                Fio = string.Format("{0} {1} {2}",
-                    record["FM"].ToString().Trim(), record["IM"].ToString().Trim(), record["OT"].ToString().Trim()),
-                DepIndex = record["SUBDIV_CODE"].ToString().Trim(),
-                DepName = record["SUBDIV_NAME"].ToString().Trim(),
-                Post = record["POST_NAME"].ToString().Trim(),
-                TabNumber = record["TAB_NUM"].ToString().Trim(),
-                DismissalDate = DateTime.Parse(record["DIS_DATE"].ToString()),
-                DismissalDescription = record["DESCRIPTION"].ToString().Trim(),
-                */
+            {                
                 Id = record["LINK"].ToString().Trim(),
                 OrgName = record["FULL_NAME"].ToString().Trim(),
                 Fio = record["FIO"].ToString().Trim(),
@@ -74,6 +62,7 @@ namespace DKSNotifier.Runners
                             <table style='margin-bottom: 5rem;'>                                       
 	                            <tr>
 		                            <th>Табельный номер</th>
+                                    <th>Учетная запись</th>
                                     <th>ФИО</th>
                                     <th>Дата увольнения</th>
                                     <th>Должность, отдел</th>
@@ -86,12 +75,14 @@ namespace DKSNotifier.Runners
                         <tr>
 		                    <td>{0}</td>
 		                    <td>{1}</td>
-                            <td>{2:dd.MM.yyyy}</td>
-                            <td>{3}, {4} - {5}</td>
-                            <td>{6}</td>
+                            <td>{2}</td>
+                            <td>{3:dd.MM.yyyy}</td>
+                            <td>{4}, {5} - {6}</td>
                             <td>{7}</td>
+                            <td>{8}</td>
                         </tr>", 
                         entity.TabNumber, 
+                        entity.Login,
                         entity.Fio, 
                         entity.DismissalDate,
                         entity.Post.Trim(),
@@ -113,7 +104,7 @@ namespace DKSNotifier.Runners
         {
             foreach(EntityDismissal entity in entities)
             {
-                xmlStorage.Add(entity.TypeEntity(), entity.GetUnique(), entity.TabNumber.Trim(), entity.Fio.Trim(), entity.DismissalDescription.Trim());
+                xmlStorage.Add(entity.TypeEntity(), entity.GetUnique(), entity.TabNumber.Trim(), entity.Login, entity.Fio.Trim(), entity.DismissalDescription.Trim());
             }
         }
 
