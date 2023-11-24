@@ -1,96 +1,133 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using DKSNotifier.Logs;
 using DKSNotifier.Model;
 using DKSNotifier.Sql;
-using DKSNotifier.Email;
-using DKSNotifier.XML;
+using DKSNotifier.Storage;
 using System.IO;
 using System.Data;
+using DKSNotifier.Formatter;
 
 namespace DKSNotifier.Runners
 {
+	/// <summary>
+	/// Выполнение процесса получения данных о сотруднике
+	/// </summary>
     internal abstract class Runner
     {
+        #region Поля
+
+        /// <summary>
+        /// объект лога
+        /// </summary>
         protected readonly Log log;
-		protected readonly string connectionStringMssql;
-		protected readonly XmlStorage xmlStorage;
-		protected readonly string sqlQueryFile;
-        
+
 		/// <summary>
-		/// 
+		/// строка подключения к MS SQL Server
 		/// </summary>
-		/// <param name="dataFilePath"></param>
-		/// <param name="connectionStringMssql"></param>
-		/// <param name="xmlFileName"></param>
-        public Runner(string connectionStringMssql, XmlStorage xmlStorage, Log log, string sqlQueryFile)
+		protected readonly string connectionStringMssql;
+
+		/// <summary>
+		/// объект для хранения полученных данных о сотрудниках
+		/// </summary>
+		protected readonly IStorage storage;
+
+		/// <summary>
+		/// Путь к sql-файлу
+		/// </summary>
+		protected readonly string sqlQueryFile;
+
+        #endregion
+
+        /// <summary>
+        /// Конструктор
+        /// </summary>
+        /// <param name="connectionStringMssql">строка подключения MS SQL Server</param>
+        /// <param name="storage">хранилище данных о сотрудниках</param>
+        /// <param name="log">лог</param>
+		/// <param name="sqlQueryFile">sql-файл</param>
+        public Runner(string connectionStringMssql, IStorage storage, Log log, string sqlQueryFile)
         {
 			this.log = log;            
 			this.connectionStringMssql = connectionStringMssql;
-			this.xmlStorage = xmlStorage;
+			this.storage = storage;
 			this.sqlQueryFile = sqlQueryFile;
         }		
 
 		/// <summary>
-		/// Запуск процессов
+		/// Запуск процесса получения, сохранения данных
 		/// </summary>
-		/// <returns></returns>
-		public string Start(string title)
+		/// <param name="title">заголовок</param>
+		/// <param name="formatter">объект форматирования данных</param>
+		/// <returns>отформатированные данные для уведомления</returns>
+		public string Start(string title, IFormatter formatter)
         {			
 			try
 			{
-				log.Info(title + " запуск");
-				Mssql<IEntity> mssql = new Mssql<IEntity>(connectionStringMssql, log);
-				string query = File.ReadAllText(sqlQueryFile);				
+				this.log.Info(title + ": запуск...");
+                #region работа с MS SQL Server
+				// инициализация sql-сервера
+                Mssql<IEntity> mssql = new Mssql<IEntity>(connectionStringMssql, log);
+				// получение sql-файла
+				string query = File.ReadAllText(sqlQueryFile);
+				// заполнение списка объектами из данных, полученных от sql сервера  
 				IEnumerable<IEntity> list = mssql.Select(query, FillEntity);
+				// фильтрация данных (удаление записей, которые были добавлены в хранилище)
 				IEnumerable<IEntity> filtered = FilterEntities(list);
-				log.Info(string.Format("Найдено записей: {0}", filtered.Count()));
-				string message = FormatEmailMessage(filtered);
-				SaveToXml(filtered);
-				log.Info(title + " завершение");
-				return message;
+                #endregion
+                this.log.Info(string.Format("Найдено записей: {0}", filtered.Count()));
+				// форматирование данных
+                string text = formatter.GetText(title, this.GetLabels(), this.GetData(filtered));
+				// сохранение данных в хранилище
+				this.SaveToStorage(filtered);
+				
+				this.log.Info(title + ": завершение");
+				return text;
 			}
 			catch (Exception e)
             {
-				log.Error("Произошла ошибка: " + e.Message);
-				log.Error(e.StackTrace);
+				this.log.Error("Произошла ошибка: " + e.Message);
+				this.log.Error(e.StackTrace);
             }
 			return null;
         }
 
-		/// <summary>
-		/// Создание модели IEntity из данных, полученных из БД
-		/// </summary>
-		/// <param name="record"></param>
-		/// <returns></returns>
-		protected abstract IEntity FillEntity(IDataRecord record);
+        /// <summary>
+        /// Создает объект IEntity из данных, полученных от sql-сервера
+        /// </summary>
+        /// <param name="record">данные, полученные от sql-сервера</param>
+        /// <returns>созданный новый объект, заполненный данными, полученными от sql-сервера</returns>
+        protected abstract IEntity FillEntity(IDataRecord record);
 
 		/// <summary>
-		/// Формирование текстовой информации из данных модели IEntity
-		/// для направления по почте
+		/// Возвращает список залоговков
 		/// </summary>
-		/// <param name="entities"></param>
-		/// <returns></returns>
-		protected abstract string FormatEmailMessage(IEnumerable<IEntity> entities);
+		/// <returns>список залоговков</returns>
+		protected abstract string[] GetLabels();
+
+        /// <summary>
+        /// Формирует двумерный массив из коллекции объектов IEntity
+        /// </summary>
+        /// <param name="entities">коллекция объектов</param>
+        /// <returns>двумерный массив</returns>        
+        protected abstract string[][] GetData(IEnumerable<IEntity> entities);
+
+        /// <summary>
+        /// Сохранение данных в хранилище
+        /// </summary>
+        /// <param name="entities">коллекция объектов</param>
+        protected abstract void SaveToStorage(IEnumerable<IEntity> entities);
 
 		/// <summary>
-		/// Сохранение данных в XML-файле
+		/// Фильтрация коллекции объектов IEntry
+		/// (для удаления записей, которые сохранены в хранилище)
 		/// </summary>
-		/// <param name="entities"></param>
-		protected abstract void SaveToXml(IEnumerable<IEntity> entities);
-
-		/// <summary>
-		/// Проверяется направлялось ли по данному событию уведомление
-		/// Если уже направлялось, то оно не берется в дальнейшую обработку
-		/// </summary>
-		/// <param name="entities"></param>
-		/// <returns></returns>
+		/// <param name="entities">коллекция объектов</param>
+		/// <returns>отфильтрованная коллекция объектов</returns>
 		protected IEnumerable<IEntity> FilterEntities(IEnumerable<IEntity> entities)
         {
-			return entities.Where(t => !xmlStorage.CheckEntity(t.TypeEntity(), t.GetUnique()));
+			return entities.Where(t => !storage.CheckEntity(t.TypeEntity(), t.GetUnique()));
         }		
 	
     }

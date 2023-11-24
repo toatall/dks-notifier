@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using DKSNotifier.Logs;
 using DKSNotifier.Model;
-using DKSNotifier.XML;
+using DKSNotifier.Storage;
 using System.Data;
 
 namespace DKSNotifier.Runners
@@ -15,96 +13,75 @@ namespace DKSNotifier.Runners
     /// </summary>
     internal class RunnerDismissal: Runner
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="connectionStringMssql"></param>
-        /// <param name="xmlStorage"></param>
-        /// <param name="log"></param>
-        /// <param name="sqlQueryFile"></param>
-        public RunnerDismissal(string connectionStringMssql, XmlStorage xmlStorage, Log log, string sqlQueryFile) 
-            : base(connectionStringMssql, xmlStorage, log, sqlQueryFile) { }
 
         /// <summary>
-        /// 
+        /// Создание объектов
         /// </summary>
-        /// <param name="record"></param>
-        /// <returns></returns>
+        /// <param name="connectionStringMssql">строка подключения</param>
+        /// <param name="storage">объект хранилища</param>
+        /// <param name="log">объект лога</param>
+        /// <param name="sqlQueryFile">sql-файл</param>
+        public RunnerDismissal(string connectionStringMssql, IStorage storage, Log log, string sqlQueryFile) 
+            : base(connectionStringMssql, storage, log, sqlQueryFile) { }
+
+        /// <inheritdoc/>        
         protected override IEntity FillEntity(IDataRecord record)
         {
-            return new EntityDismissal()
-            {                
-                Id = record["LINK"].ToString().Trim(),
-                OrgName = record["FULL_NAME"].ToString().Trim(),
-                Fio = record["FIO"].ToString().Trim(),
-                Login = record["LOGIN"].ToString().Trim(),
-                DepIndex = record["SUBDIV_CODE"].ToString().Trim(),
-                DepName = record["SUBDIV_NAME"].ToString().Trim(),
-                Post = record["POST_NAME"].ToString().Trim(),
-                TabNumber = record["TAB_NUM"].ToString().Trim(),
-                DismissalDate = DateTime.Parse(record["DIS_DATE"].ToString()),
-                DismissalDescription = record["DESCRIPTION"].ToString().Trim(),
+            return new EntityDismissal(
+                id: record["LINK"].ToString().Trim(),
+                tabNumber: record["TAB_NUM"].ToString().Trim(),
+                login: record["LOGIN"].ToString().Trim(),
+                fio: record["FIO"].ToString().Trim(),
+                post: record["POST_NAME"].ToString().Trim(),
+                orgName: record["FULL_NAME"].ToString().Trim(),
+                depIndex: record["SUBDIV_CODE"].ToString().Trim(), 
+                depName: record["SUBDIV_NAME"].ToString().Trim(), 
+                dismissalDate: DateTime.Parse(record["DIS_DATE"].ToString()), 
+                dismissalDescription: record["DESCRIPTION"].ToString().Trim(), 
+                ordNumber: record["ORD_NUMBER"].ToString().Trim(), 
+                ordDate:DateTime.Parse(record["ORD_DATE"].ToString())
+            );
+        }
+
+        /// <inheritdoc/>
+        protected override string[][] GetData(IEnumerable<IEntity> entities)
+        {
+            return entities.Cast<EntityDismissal>().Select(t => new string[] {
+                t.TabNumber.Trim(),
+                t.Login.Trim(),
+                t.Fio.Trim(),
+                t.DismissalDate.ToString("dd.MM.yyyy"),
+                string.Format("{0}, {1} - {2}", t.Post.Trim(), t.DepIndex.Trim(), t.DepName.Trim()),
+                string.Format("№{0} от {1:dd.MM.yyyy}", t.OrdNumber, t.OrdDate),
+                t.OrgName.Trim(),
+                t.DismissalDescription.Trim(),
+            }).ToArray();
+        }
+
+        /// <inheritdoc/>
+        protected override string[] GetLabels()
+        {
+            return new string[] {
+                "Табельный номер", // TabNumber
+                "Учетная запись", // Login
+                "ФИО", // Fio
+                "Дата увольнения", // DismissalDate
+                "Должность, отдел", // Post + DepIndex + DepName
+                "Номер и дата приказа", // OrdNumber + OrdDate
+                "Налоговый орган", // OrgName
+                "Причина", // DismissalDescription
             };
-        }
+        }               
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="entities"></param>
-        /// <returns></returns>
-        protected override string FormatEmailMessage(IEnumerable<IEntity> entities)
-        {           
-            string result = "";
-            if (entities.Count() > 0)
-            {
-                result += @"
-                            <h3>Увольнение</h3>
-                            <table style='margin-bottom: 5rem;'>                                       
-	                            <tr>
-		                            <th>Табельный номер</th>
-                                    <th>Учетная запись</th>
-                                    <th>ФИО</th>
-                                    <th>Дата увольнения</th>
-                                    <th>Должность, отдел</th>
-                                    <th>Налоговый орган</th>
-                                    <th>Причина</th>
-                                </tr>";
-                foreach (EntityDismissal entity in entities)
-                {                   
-                    result += string.Format(@"
-                        <tr>
-		                    <td>{0}</td>
-		                    <td>{1}</td>
-                            <td>{2}</td>
-                            <td>{3:dd.MM.yyyy}</td>
-                            <td>{4}, {5} - {6}</td>
-                            <td>{7}</td>
-                            <td>{8}</td>
-                        </tr>", 
-                        entity.TabNumber, 
-                        entity.Login,
-                        entity.Fio, 
-                        entity.DismissalDate,
-                        entity.Post.Trim(),
-                        entity.DepIndex.Trim(),
-                        entity.DepName.Trim(),
-                        entity.OrgName.Trim(),
-                        entity.DismissalDescription.Trim());
-                }
-                result += "</table>";
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="entities"></param>
-        protected override void SaveToXml(IEnumerable<IEntity> entities)
+        /// <inheritdoc/>
+        protected override void SaveToStorage(IEnumerable<IEntity> entities)
         {
             foreach(EntityDismissal entity in entities)
             {
-                xmlStorage.Add(entity.TypeEntity(), entity.GetUnique(), entity.TabNumber.Trim(), entity.Login, entity.Fio.Trim(), entity.DismissalDescription.Trim());
+                //storage.Add(entity.TypeEntity(), entity.GetUnique(), entity.TabNumber.Trim(), entity.Login, entity.Fio.Trim(), entity.DismissalDescription.Trim());
+                string description = string.Format("табельный номер: {0}, логин: {1}, ФИО: {2}, дата и время: {3}",
+                    entity.TabNumber.Trim(), entity.Login.Trim(), entity.Fio.Trim(), DateTime.Now.ToString());
+                storage.Add(entity.TypeEntity(), entity.GetUnique(), description);
             }
         }
 

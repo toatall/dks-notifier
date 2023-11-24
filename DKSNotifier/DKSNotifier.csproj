@@ -46,15 +46,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Email\Sender.cs" />
+    <Compile Include="AppStarter.cs" />
+    <Compile Include="Formatter\IFormatter.cs" />
+    <Compile Include="Notifiers\EmailNotifier.cs" />
+    <Compile Include="Formatter\HtmlFormatter.cs" />
     <Compile Include="Model\EntityDismissal.cs" />
     <Compile Include="Model\EntityMoving.cs" />
     <Compile Include="Model\EntityVacation.cs" />
     <Compile Include="Log\Log.cs" />
     <Compile Include="Model\IEntity.cs" />
+    <Compile Include="Notifiers\HtmlNotifier.cs" />
+    <Compile Include="Notifiers\INotifier.cs" />
     <Compile Include="Runners\RunnerMoving.cs" />
     <Compile Include="Runners\RunnerVacation.cs" />
-    <Compile Include="XML\XmlStorage.cs" />
+    <Compile Include="Storage\IStorage.cs" />
+    <Compile Include="Storage\XmlStorage.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Runners\Runner.cs" />

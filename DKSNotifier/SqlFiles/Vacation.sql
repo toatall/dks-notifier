@@ -1,4 +1,4 @@
-/* Декретные отпуска */
+/* Отпуска */
 
 DECLARE @dDate1 DATETIME, @dDate2 DATETIME, @nOrderItemStatus INT, @Days INT 
 
@@ -12,8 +12,8 @@ SELECT
 	ITV.TYPE_NAME, 
 	DEP.FULL_NAME [DEP_NAME],
 	dbo.DICTIONARY_VACATION_FACES_FN_DAYS(ITV.LINK) COUNT_DAYS, 
-	--ITV.PERIOD_BEGIN, 
-	--ITV.PERIOD_END, 
+	ORD4.NUMBER ORD_NUMBER,
+	ORD4.[DATE] ORD_DATE,
 	ITV.DATE_BEGIN, 
 	ITV.DATE_END_REAL,	
 	EMPL.[LOGIN],
@@ -32,4 +32,7 @@ WHERE (ORD4.LINK = ITV.ORDER_LINK  AND (ITV.ACTIVE = @nOrderItemStatus))
 	AND ITV.DATE_BEGIN BETWEEN @dDate1 AND @dDate2
 	AND ORD4.DEP_LINK = DEP.LINK
 	AND ORD4.TYPE IN (4, 104, 15)	
-	AND ITV.TYPE_CODE IN (3, 22, 48, 49)
+	AND ITV.TYPE_CODE IN ('03', '22', '48', '49') -- указать коды отпусков
+	/*
+	посмотреть коды отпусков можно в ПК "ДКС", задача "Кадры", ветка "Справочники - Учет рабочего времени - Виды отпусков"
+	*/

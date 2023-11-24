@@ -3,10 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using DKSNotifier.Logs;
-using DKSNotifier.XML;
+using DKSNotifier.Storage;
 
 namespace DKSNotifier.Runners
 {
@@ -16,100 +14,74 @@ namespace DKSNotifier.Runners
     internal class RunnerVacation : Runner
     {
         /// <summary>
-        /// 
+        /// Создание объектов
         /// </summary>
-        /// <param name="connectionStringMssql"></param>
-        /// <param name="xmlStorage"></param>
-        /// <param name="log"></param>
-        /// <param name="sqlQueryFile"></param>
-        public RunnerVacation(string connectionStringMssql, XmlStorage xmlStorage, Log log, string sqlQueryFile)
-            : base(connectionStringMssql, xmlStorage, log, sqlQueryFile) { }
+        /// <param name="connectionStringMssql">строка подключения</param>
+        /// <param name="storage">объект хранилища</param>
+        /// <param name="log">объект лога</param>
+        /// <param name="sqlQueryFile">sql-файл</param>
+        public RunnerVacation(string connectionStringMssql, IStorage storage, Log log, string sqlQueryFile)
+            : base(connectionStringMssql, storage, log, sqlQueryFile) { }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="record"></param>
-        /// <returns></returns>
+        /// <inheritdoc/> 
         protected override IEntity FillEntity(IDataRecord record)
         {
-            return new EntityVacation()
-            {
-                Id = record["LINK"].ToString().Trim(),
-                Fio = record["FIO"].ToString().Trim(),
-                Post = record["POST"].ToString().Trim(),
-                Login = record["LOGIN"].ToString().Trim(),
-                Department = record["SUBDIV"].ToString().Trim(),
-                TabNum = record["TAB_NUM"].ToString().Trim(),
-                TypeName = record["TYPE_NAME"].ToString().Trim(),
-                Days = int.Parse(record["COUNT_DAYS"].ToString().Trim()),
-                DateBegin = DateTime.Parse(record["DATE_BEGIN"].ToString()),
-                DateEnd = DateTime.Parse(record["DATE_END_REAL"].ToString())
+            return new EntityVacation(
+                id: record["LINK"].ToString().Trim(),
+                fio: record["FIO"].ToString().Trim(),
+                tabNumber: record["TAB_NUM"].ToString().Trim(),
+                login: record["LOGIN"].ToString().Trim(),
+                post: record["POST"].ToString().Trim(),
+                department: record["SUBDIV"].ToString().Trim(),
+                dateBegin: DateTime.Parse(record["DATE_BEGIN"].ToString()),
+                dateEnd: DateTime.Parse(record["DATE_END_REAL"].ToString()),
+                days: int.Parse(record["COUNT_DAYS"].ToString().Trim()),
+                typeName: record["TYPE_NAME"].ToString().Trim(),
+                ordNumber: record["ORD_NUMBER"].ToString().Trim(),
+                ordDate: DateTime.Parse(record["ORD_DATE"].ToString())
+            );           
+        }
+
+        /// <inheritdoc/> 
+        protected override string[][] GetData(IEnumerable<IEntity> entities)
+        {
+            return entities.Cast<EntityVacation>().Select(t => new string[] {
+                t.TabNumber.Trim(),
+                t.Login.Trim(),
+                t.Fio.Trim(),
+                t.Department.Trim(),
+                t.Post.Trim(),
+                string.Format("№{0} от {1:dd.MM.yyyy}", t.OrdNumber, t.OrdDate),
+                string.Format("{0:dd.MM.yyyy} - {1:dd.MM.yyyy}", t.DateBegin, t.DateEnd),                
+                t.Days.ToString(),
+                t.TypeName.Trim(),
+            }).ToArray();
+        }
+
+        /// <inheritdoc/> 
+        protected override string[] GetLabels()
+        {
+            return new string[] {
+                "Табельный номер", // TabNum
+                "Учетная запись", // Login
+                "ФИО", // Fio
+                "Отдел", // Department
+                "Должность", // Post
+                "Номер и дата приказа", // OrdNumber + OrdDate
+                "Период", // DateBegin - DateEnd
+                "Количество дней", // Days
+                "Вид отпуска", // TypeName
             };
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="entities"></param>
-        /// <returns></returns>
-        protected override string FormatEmailMessage(IEnumerable<IEntity> entities)
-        {         
-            string result = "";
-            if (entities.Count() > 0)
-            {
-                result += @"
-                            <h3>Отпуск по беременности и родам</h3>
-                            <table style='margin-bottom: 5rem;'>                                
-	                            <tr>
-		                            <th>Табельный номер</th>
-                                    <th>Учетная запись</th>
-                                    <th>ФИО</th>
-                                    <th>Отдел</th>
-                                    <th>Должность</th>
-                                    <th>Период</th>
-                                    <th>Количество дней</th>
-                                    <th>Вид отпуска</th>
-                                </tr>";
-                foreach (EntityVacation entity in entities)
-                {
-                    result += string.Format(@"
-                        <tr>
-		                    <td>{0}</td>
-		                    <td>{1}</td>
-                            <td>{2}</td>
-                            <td>{3}</td>
-                            <td>{4}</td>
-                            <td>{5:dd.MM.yyyy} - {6:dd.MM.yyyy}</td>
-                            <td>{7}</td>
-                            <td>{8}</td>
-                        </tr>",
-                        entity.TabNum,
-                        entity.Login,
-                        entity.Fio,
-                        entity.Department,
-                        entity.Post,
-                        entity.DateBegin,
-                        entity.DateEnd,
-                        entity.Days,
-                        entity.TypeName);
-                }
-                result += "</table>";
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="entities"></param>
-        protected override void SaveToXml(IEnumerable<IEntity> entities)
+        /// <inheritdoc/>
+        protected override void SaveToStorage(IEnumerable<IEntity> entities)
         {
             foreach (EntityVacation entity in entities)
-            {
-                xmlStorage.Add(entity.TypeEntity(), entity.GetUnique(), entity.TabNum.Trim(), entity.Login, entity.Fio.Trim(),
-                    string.Format("дата начала: {0}, дата окончания: {1}, количество дней: {2}, вид отпуска: {3}",
-                        entity.DateBegin.ToShortDateString(), entity.DateEnd.ToShortDateString(), entity.Days, entity.TypeName.Trim())
-                );
+            {                
+                string description = string.Format("табельный номер: {0}, логин: {1}, ФИО: {2}, дата и время: {3}",
+                    entity.TabNumber.Trim(), entity.Login.Trim(), entity.Fio.Trim(), DateTime.Now.ToString());
+                storage.Add(entity.TypeEntity(), entity.GetUnique(), description);
             }
         }
 

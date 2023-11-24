@@ -1,13 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Configuration;
-using DKSNotifier.XML;
-using DKSNotifier.Logs;
-using DKSNotifier.Email;
-using DKSNotifier.Runners;
 
 namespace DKSNotifier
 {
@@ -18,62 +10,34 @@ namespace DKSNotifier
         /// </summary>
         /// <param name="args"></param>
         static void Main(string[] args)
-        {
+        {   
+            // строка подключения к MS SQL Server
             string connectionString = ConfigurationManager.ConnectionStrings["Mssql"].ConnectionString;
-            Log log = new Log();
-            Sender sender = new Sender(
-                ConfigurationManager.AppSettings["EmailServerName"],
-                int.Parse(ConfigurationManager.AppSettings["EmailServerPort"]),
-                "Уведомление о движении сотрудников",
-                ConfigurationManager.AppSettings["EmailFrom"],
-                ConfigurationManager.AppSettings["EmailTo"],
-                log
-            );
-            XmlStorage xmlStorage = new XmlStorage(AppDomain.CurrentDomain.BaseDirectory + "base.xml", log);
 
-            log.Info("Запуск приложения");
+            //
+            bool checkDismissal = bool.Parse(ConfigurationManager.AppSettings["CheckDismissial"]?.ToString() ?? "True");
+            bool checkMoving = bool.Parse(ConfigurationManager.AppSettings["CheckMoving"]?.ToString() ?? "True");
+            bool checkVacation = bool.Parse(ConfigurationManager.AppSettings["CheckVacation"]?.ToString() ?? "True");
 
-            string emailMessage = "";
+            // настройки email
+            string emailServerName = ConfigurationManager.AppSettings["EmailServerName"];
+            int emailServerPort = int.Parse(ConfigurationManager.AppSettings["EmailServerPort"]);
+            string emailFrom = ConfigurationManager.AppSettings["EmailFrom"];
+            string emailTo = ConfigurationManager.AppSettings["EmailTo"];
+            bool isEmailSend = bool.Parse(ConfigurationManager.AppSettings["EmailSend"]?.ToString() ?? "True");
 
-            emailMessage += Run(
-                new RunnerDismissal(connectionString, xmlStorage, log, AppDomain.CurrentDomain.BaseDirectory + "SqlFiles/Dismissial.sql"), 
-                "УВОЛЬНЕНИЕ:");
-            emailMessage += Run(
-                new RunnerMoving(connectionString, xmlStorage, log, AppDomain.CurrentDomain.BaseDirectory + "SqlFiles/Moving.sql"), 
-                "ПЕРЕВОДЫ:");
-            emailMessage += Run(
-                new RunnerVacation(connectionString, xmlStorage, log, AppDomain.CurrentDomain.BaseDirectory + "SqlFiles/Vacation.sql"), 
-                "ОТПУСК ПО БЕРЕМЕННОСТИ И РОДАМ:");
+            // каталог сохранения html-файлов 
+            string dirOut = ConfigurationManager.AppSettings["DirOut"] ?? AppDomain.CurrentDomain.BaseDirectory + "HtmlOut";
 
-            if (!string.IsNullOrEmpty(emailMessage))
-            {
-                string head = @"
-                        <style>
-                            body { font-family: system-ui, -apple-system, ""Segoe UI"", Roboto, ""Helvetica Neue"", ""Noto Sans"", ""Liberation Sans"", Arial } 
-                            table { caption-side: bottom; border-collapse: collapse; margin-bottom: 50px; width: 100%; }
-                            table td, table th { border: 1px solid #aaa; padding: 5px; }
-                        </style>";
-                sender.Send(string.Format("<html><head>{0}</head><body>{1}</body></html>", head, emailMessage));
-            }
-            log.Info("Завершение приложения");
-            log.EmptyLines(3);
-        }
+            // путь к xml-файлу для сохранения информации о полученных сведениях (для исключения повторного направления/сохранения информации)            
+            string xmlBaseFile = AppDomain.CurrentDomain.BaseDirectory + "base.xml";
+            
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="runner"></param>
-        /// <param name="title"></param>
-        /// <returns></returns>
-        private static string Run(Runner runner, string title)
-        {            
-            string textRunner = runner.Start(title);
-            if (!string.IsNullOrEmpty(textRunner))
-            {
-                return textRunner;
-            }
-            return null;
-        }
+            AppStarter appStarter = new AppStarter(connectionString, 
+                emailServerName, emailServerPort, emailFrom, emailTo, 
+                isEmailSend, dirOut, xmlBaseFile, checkDismissal, checkMoving, checkVacation);
+            appStarter.Run();
+        }       
 
     }
 }

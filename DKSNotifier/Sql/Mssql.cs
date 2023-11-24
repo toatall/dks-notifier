@@ -9,20 +9,27 @@ using System.Data;
 
 namespace DKSNotifier.Sql
 {
-    /// <summary>
-    /// Работа с MS SQL
+    /// <summary> 
+    /// Работа с базой MS SQL Server
     /// </summary>
     /// <typeparam name="T"></typeparam>
     internal class Mssql<T>
     {
+        /// <summary>
+        /// строка подключения 
+        /// </summary>
         private string connectionString;
+
+        /// <summary>
+        /// лог
+        /// </summary>
         private Log log;
 
         /// <summary>
-        /// 
+        /// Конструктор
         /// </summary>
-        /// <param name="connectionString"></param>
-        /// <param name="log"></param>
+        /// <param name="connectionString">строка подключения</param>
+        /// <param name="log">лог</param>
         public Mssql(string connectionString, Log log)
         {
             this.connectionString = connectionString;
@@ -30,10 +37,10 @@ namespace DKSNotifier.Sql
         }
 
         /// <summary>
-        /// 
+        /// Чтение данных из базы данных и заполнение коллекции объектов T
         /// </summary>
-        /// <param name="queryText"></param>
-        /// <param name="func"></param>
+        /// <param name="queryText">текст запроса</param>
+        /// <param name="func">функция заполнения объекта T</param>
         /// <returns></returns>
         public IEnumerable<T> Select(string queryText, Func<IDataRecord, T> func)
         {

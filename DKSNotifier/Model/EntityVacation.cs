@@ -6,24 +6,101 @@ using System.Threading.Tasks;
 
 namespace DKSNotifier.Model
 {
+    /// <summary>
+    /// Запись об отпуске сотрудника
+    /// </summary>
     internal class EntityVacation: IEntity 
     {
-        public string Id { get; set; }
-        public string Fio { get; set; }
-        public string TabNum { get; set; }
-        public string Login { get; set; }
-        public string Post { get; set; }
-        public string Department { get; set; }
-        public DateTime DateBegin { get; set; }
-        public DateTime DateEnd { get; set; }
-        public int Days { get; set; }
-        public string TypeName { get; set; }
+        #region Свойства
 
-        public string GetUnique()
+        /// <summary>
+        /// Идентификатор
+        /// </summary>
+        public string Id { get; private set; }
+
+        /// <summary>
+        /// ФИО
+        /// </summary>
+        public string Fio { get; private set; }
+
+        /// <summary>
+        /// Табельный номер
+        /// </summary>
+        public string TabNumber { get; private set; }
+
+        /// <summary>
+        /// Логин
+        /// </summary>
+        public string Login { get; private set; }
+
+        /// <summary>
+        /// Должность
+        /// </summary>
+        public string Post { get; private set; }
+
+        /// <summary>
+        /// Отдел
+        /// </summary>
+        public string Department { get; private set; }
+
+        /// <summary>
+        /// Дата начала
+        /// </summary>
+        public DateTime DateBegin { get; private set; }
+
+        /// <summary>
+        /// Дата окончания
+        /// </summary>
+        public DateTime DateEnd { get; private set; }
+
+        /// <summary>
+        /// Количество дней
+        /// </summary>
+        public int Days { get; private set; }
+
+        /// <summary>
+        /// Вид отпуска
+        /// </summary>
+        public string TypeName { get; private set; }
+
+        /// <summary>
+        /// Номер приказа
+        /// </summary>
+        public string OrdNumber { get; private set; }
+
+        /// <summary>
+        /// Дата приказа
+        /// </summary>
+        public DateTime OrdDate { get; private set; }
+
+        #endregion
+
+        public EntityVacation(string id, string fio, string tabNumber, string login, string post, string department, DateTime dateBegin,
+            DateTime dateEnd, int days, string typeName, string ordNumber, DateTime ordDate)
         {
-            return string.Format("{0}_{1}_{2}_{3}", Id, TabNum, DateBegin, DateEnd);
+            this.Id = id;
+            this.Fio = fio;
+            this.TabNumber = tabNumber;
+            this.Login = login;
+            this.Post = post;
+            this.Department = department;
+            this.DateBegin = dateBegin;
+            this.DateEnd = dateEnd;
+            this.Days = days;
+            this.TypeName = typeName;
+            this.OrdNumber = ordNumber;
+            this.OrdDate = ordDate;
         }
 
+        /// <inheritdoc/>
+        /// <returns></returns>
+        public string GetUnique()
+        {
+            return string.Format("{0}_{1}_{2}_{3}", Id, TabNumber, DateBegin, DateEnd);
+        }
+
+        /// <inheritdoc/>
+        /// <returns></returns>
         public string TypeEntity()
         {
             return "VACATION";

@@ -1,29 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
 using System.Xml.Linq;
 using DKSNotifier.Logs;
 
 
-namespace DKSNotifier.XML
+namespace DKSNotifier.Storage
 {
+    /// <inheritdoc/>
     /// <summary>
-    /// Работа с xml-файлом
+    /// Сохранение информации в xml-файле
     /// </summary>
-    internal class XmlStorage
+    internal class XmlStorage: IStorage
     {
+        /// <summary>
+        /// Объект xml документа
+        /// </summary>
         private readonly XDocument doc;
+
+        /// <summary>
+        /// Путь к xml-файлу
+        /// </summary>
         private readonly string xmlFile;
+
+        /// <summary>
+        /// Объект лога
+        /// </summary>
         private readonly Log log;
 
         /// <summary>
-        /// 
+        /// Создание объекта
         /// </summary>
-        /// <param name="xmlFile"></param>
+        /// <param name="xmlFile">путь к файлу</param>
+        /// <param name="log">лог</param>
         public XmlStorage(string xmlFile, Log log)
         {
             this.xmlFile = xmlFile;
@@ -45,12 +53,7 @@ namespace DKSNotifier.XML
             }                                              
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="unid"></param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public bool CheckEntity(string type, string unid)
         {
             if (doc.Root == null)
@@ -60,27 +63,17 @@ namespace DKSNotifier.XML
             var res = doc.Root.Elements("Node")
                 .FirstOrDefault(t => t.Attribute("Type").Value == type & t.Attribute("Unid").Value == unid);
             return res != null;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="unid"></param>
-        /// <param name="tabNum"></param>
-        /// <param name="fio"></param>
-        /// <param name="description"></param>
-        public void Add(string type, string unid, string tabNum, string login, string fio, string description = "")
+        }        
+        
+        /// <inheritdoc />
+        public void Add(string type, string unid, string description)
         {
             if (doc.Root != null)
             {
-                log.Info(string.Format("Сохранение записи в xml-файл: тип={0}, табельный номер={1}, УЗ={2}, ФИО={3}", type, tabNum, login, fio));
+                log.Info(string.Format("Сохранение записи в xml-файл: тип={0}, идентификатор={1}, описание={2}", type, unid, description));
                 doc.Root.Add(new XElement("Node",
                     new XAttribute("Type", type),
-                    new XAttribute("Unid", unid),
-                    new XAttribute("TabNum", tabNum),
-                    new XAttribute("Login", login),
-                    new XAttribute("Fio", fio),
+                    new XAttribute("Unid", unid),                  
                     new XAttribute("Description", description)
                 ));
                 doc.Save(xmlFile);
