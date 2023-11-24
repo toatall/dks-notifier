@@ -14,7 +14,7 @@ namespace DKSNotifier
             // строка подключения к MS SQL Server
             string connectionString = ConfigurationManager.ConnectionStrings["Mssql"].ConnectionString;
 
-            //
+            // параметры запуска 
             bool checkDismissal = bool.Parse(ConfigurationManager.AppSettings["CheckDismissial"]?.ToString() ?? "True");
             bool checkMoving = bool.Parse(ConfigurationManager.AppSettings["CheckMoving"]?.ToString() ?? "True");
             bool checkVacation = bool.Parse(ConfigurationManager.AppSettings["CheckVacation"]?.ToString() ?? "True");
@@ -32,7 +32,6 @@ namespace DKSNotifier
             // путь к xml-файлу для сохранения информации о полученных сведениях (для исключения повторного направления/сохранения информации)            
             string xmlBaseFile = AppDomain.CurrentDomain.BaseDirectory + "base.xml";
             
-
             AppStarter appStarter = new AppStarter(connectionString, 
                 emailServerName, emailServerPort, emailFrom, emailTo, 
                 isEmailSend, dirOut, xmlBaseFile, checkDismissal, checkMoving, checkVacation);
