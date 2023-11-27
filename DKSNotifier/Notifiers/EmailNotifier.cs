@@ -71,10 +71,19 @@ namespace DKSNotifier.Notifiers
         {
             try
             {
+                string style = @"
+                        <style>
+                            body { font-family: system-ui, -apple-system, ""Segoe UI"", Roboto, ""Helvetica Neue"", ""Noto Sans"", ""Liberation Sans"", Arial } 
+                            table { caption-side: bottom; border-collapse: collapse; margin-bottom: 100px; width: 100%; }
+                            table td, table th { border: 1px solid #aaa; padding: 5px; }
+                            h1 { text-align: center; }
+                        </style>";                
+                string html = string.Format("<html><head>{0}</head><body>{1}</body></html>", style, text);
+
                 log.Info("Направление почты по адресу: " + to);
                 MailMessage mailMessage = new MailMessage(from, to);
                 mailMessage.Subject = subject;
-                mailMessage.Body = text;
+                mailMessage.Body = html;
                 mailMessage.IsBodyHtml = true;
                 SmtpClient smtpClient = new SmtpClient(server, port);
                 smtpClient.Send(mailMessage);
