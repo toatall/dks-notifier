@@ -53,7 +53,9 @@ namespace DKSNotifier.Notifiers
 
             try
             {
+                log.Info("Запись информации в файл " + this.filename);
                 File.WriteAllText(this.filename, html);
+                //log.Info("Запись в файл " + this.filename + " завершена");
             }
             catch (Exception ex)
             {
