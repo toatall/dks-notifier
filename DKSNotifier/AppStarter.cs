@@ -148,48 +148,55 @@ namespace DKSNotifier
             this.Init();
             this.log.Info("Запуск приложения");
 
-            StringBuilder textResult = new StringBuilder();
-            Directory.CreateDirectory(this.dirOut);
-            string htmlFilename = Path.Combine(this.dirOut, GenerateHtmlFilename());
+            try
+            {
+                StringBuilder textResult = new StringBuilder();
+                Directory.CreateDirectory(this.dirOut);
+                string htmlFilename = Path.Combine(this.dirOut, GenerateHtmlFilename());
 
-            List<INotifier> notifiers = new List<INotifier>
+                List<INotifier> notifiers = new List<INotifier>
             {
                 new HtmlNotifier(htmlFilename, log)
             };
-            if (this.isEmailSend)
-            {
-                notifiers.Add(new EmailNotifier(this.emailServerName, this.emailServerPort, "Уведомление о движении сотрудников", 
-                    this.emailFrom, this.emailTo, log));
-            }
+                if (this.isEmailSend)
+                {
+                    notifiers.Add(new EmailNotifier(this.emailServerName, this.emailServerPort, "Уведомление о движении сотрудников",
+                        this.emailFrom, this.emailTo, log));
+                }
 
-            // уволенные
-            if (this.checkDismissal)
-            {
-                RunnerDismissal runnerDismissal = new RunnerDismissal(this.mssqlConnectionString, this.storage, this.log,
-                    AppDomain.CurrentDomain.BaseDirectory + "SqlFiles/Dismissial.sql");
-                textResult.AppendLine(runnerDismissal.Start("УВОЛЬНЕНИЯ", this.formatter));
-            }
+                // уволенные
+                if (this.checkDismissal)
+                {
+                    RunnerDismissal runnerDismissal = new RunnerDismissal(this.mssqlConnectionString, this.storage, this.log,
+                        AppDomain.CurrentDomain.BaseDirectory + "SqlFiles/Dismissial.sql");
+                    textResult.AppendLine(runnerDismissal.Start("УВОЛЬНЕНИЯ", this.formatter));
+                }
 
-            // переводы
-            if (this.checkMoving)
-            {
-                RunnerMoving runnerMoving = new RunnerMoving(this.mssqlConnectionString, this.storage, this.log,
-                   AppDomain.CurrentDomain.BaseDirectory + "SqlFiles/Moving.sql");
-                textResult.AppendLine(runnerMoving.Start("ПЕРЕВОДЫ", this.formatter));
-            }
+                // переводы
+                if (this.checkMoving)
+                {
+                    RunnerMoving runnerMoving = new RunnerMoving(this.mssqlConnectionString, this.storage, this.log,
+                       AppDomain.CurrentDomain.BaseDirectory + "SqlFiles/Moving.sql");
+                    textResult.AppendLine(runnerMoving.Start("ПЕРЕВОДЫ", this.formatter));
+                }
 
-            // отпуск
-            if (this.checkVacation)
-            {
-                RunnerVacation runnerVacation = new RunnerVacation(this.mssqlConnectionString, this.storage, this.log,
-                   AppDomain.CurrentDomain.BaseDirectory + "SqlFiles/Vacation.sql");
-                textResult.AppendLine(runnerVacation.Start("ОТПУСКА", this.formatter));
-            }
+                // отпуск
+                if (this.checkVacation)
+                {
+                    RunnerVacation runnerVacation = new RunnerVacation(this.mssqlConnectionString, this.storage, this.log,
+                       AppDomain.CurrentDomain.BaseDirectory + "SqlFiles/Vacation.sql");
+                    textResult.AppendLine(runnerVacation.Start("ОТПУСКА", this.formatter));
+                }
 
-            // запуск уведомлений
-            foreach (INotifier notifier in notifiers)
+                // запуск уведомлений
+                foreach (INotifier notifier in notifiers)
+                {
+                    notifier.Exec(textResult.ToString());
+                }
+            }
+            catch (Exception ex)
             {
-                notifier.Exec(textResult.ToString());
+                log.Error("Ошибка в AppStarter. " + ex.Message);
             }
 
             this.log.Info("Завершение приложения");
