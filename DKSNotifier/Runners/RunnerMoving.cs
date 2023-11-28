@@ -5,6 +5,7 @@ using System.Data;
 using DKSNotifier.Logs;
 using DKSNotifier.Storage;
 using System.Linq;
+using DKSNotifier.Sql;
 
 namespace DKSNotifier.Runners
 {
@@ -20,8 +21,8 @@ namespace DKSNotifier.Runners
         /// <param name="storage">объект хранилища</param>
         /// <param name="log">объект лога</param>
         /// <param name="sqlQueryFile">sql-файл</param>
-        public RunnerMoving(string connectionStringMssql, IStorage storage, Log log, string sqlQueryFile)
-            : base(connectionStringMssql, storage, log, sqlQueryFile) { }
+        public RunnerMoving(string connectionStringMssql, IStorage storage, Log log, IQuery query)
+            : base(connectionStringMssql, storage, log, query) { }
 
         /// <inheritdoc/>
         protected override IEntity FillEntity(IDataRecord record)

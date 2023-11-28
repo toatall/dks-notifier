@@ -75,6 +75,21 @@ namespace DKSNotifier.Model
 
         #endregion
 
+        /// <summary>
+        /// Конструктор
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="fio"></param>
+        /// <param name="tabNumber"></param>
+        /// <param name="login"></param>
+        /// <param name="post"></param>
+        /// <param name="department"></param>
+        /// <param name="dateBegin"></param>
+        /// <param name="dateEnd"></param>
+        /// <param name="days"></param>
+        /// <param name="typeName"></param>
+        /// <param name="ordNumber"></param>
+        /// <param name="ordDate"></param>
         public EntityVacation(string id, string fio, string tabNumber, string login, string post, string department, DateTime dateBegin,
             DateTime dateEnd, int days, string typeName, string ordNumber, DateTime ordDate)
         {
@@ -93,14 +108,12 @@ namespace DKSNotifier.Model
         }
 
         /// <inheritdoc/>
-        /// <returns></returns>
         public string GetUnique()
         {
             return string.Format("{0}_{1}_{2}_{3}", Id, TabNumber, DateBegin, DateEnd);
         }
 
         /// <inheritdoc/>
-        /// <returns></returns>
         public string TypeEntity()
         {
             return "VACATION";

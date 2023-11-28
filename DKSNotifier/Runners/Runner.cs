@@ -38,6 +38,11 @@ namespace DKSNotifier.Runners
 		/// </summary>
 		protected readonly string sqlQueryFile;
 
+		/// <summary>
+		/// Экземпляр класса реализованный от IQuery
+		/// </summary>
+		protected readonly IQuery query;
+
         #endregion
 
         /// <summary>
@@ -46,13 +51,13 @@ namespace DKSNotifier.Runners
         /// <param name="connectionStringMssql">строка подключения MS SQL Server</param>
         /// <param name="storage">хранилище данных о сотрудниках</param>
         /// <param name="log">лог</param>
-		/// <param name="sqlQueryFile">sql-файл</param>
-        public Runner(string connectionStringMssql, IStorage storage, Log log, string sqlQueryFile)
+		/// <param name="query">экземпляр класса реализованный от IQuery</param>
+        public Runner(string connectionStringMssql, IStorage storage, Log log, IQuery query)
         {
 			this.log = log;            
 			this.connectionStringMssql = connectionStringMssql;
 			this.storage = storage;
-			this.sqlQueryFile = sqlQueryFile;
+			this.query = query;
         }		
 
 		/// <summary>
@@ -68,20 +73,21 @@ namespace DKSNotifier.Runners
 				this.log.Info(title + ": запуск...");
                 #region работа с MS SQL Server
 				// инициализация sql-сервера
-                Mssql<IEntity> mssql = new Mssql<IEntity>(connectionStringMssql, log);
-				// получение sql-файла
-				string query = File.ReadAllText(sqlQueryFile);
+                Mssql<IEntity> mssql = new Mssql<IEntity>(connectionStringMssql, log, this.query);
 				// заполнение списка объектами из данных, полученных от sql сервера  
-				IEnumerable<IEntity> list = mssql.Select(query, FillEntity);
+				IEnumerable<IEntity> list = mssql.Select(FillEntity);
 				// фильтрация данных (удаление записей, которые были добавлены в хранилище)
 				IEnumerable<IEntity> filtered = FilterEntities(list);
                 #endregion
                 this.log.Info(string.Format("Найдено записей: {0}", filtered.Count()));
-				// форматирование данных
-                string text = formatter.GetText(title, this.GetLabels(), this.GetData(filtered));
-				// сохранение данных в хранилище
-				this.SaveToStorage(filtered);
-				
+				string text = null;
+                if (filtered.Count() > 0)
+				{
+					// форматирование данных
+					text = formatter.GetText(title, this.GetLabels(), this.GetData(filtered));
+					// сохранение данных в хранилище
+					this.SaveToStorage(filtered);
+				}
 				this.log.Info(title + ": завершение");
 				return text;
 			}

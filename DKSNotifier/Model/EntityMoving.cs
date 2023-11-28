@@ -76,6 +76,21 @@ namespace DKSNotifier.Model
 
         #endregion
 
+        /// <summary>
+        /// Конструктор
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="fio"></param>
+        /// <param name="tabNumber"></param>
+        /// <param name="login"></param>
+        /// <param name="orgName"></param>
+        /// <param name="depNameOld"></param>
+        /// <param name="depNameNew"></param>
+        /// <param name="postOld"></param>
+        /// <param name="postNew"></param>
+        /// <param name="date"></param>
+        /// <param name="ordNumber"></param>
+        /// <param name="ordDate"></param>
         public EntityMoving(string id, string fio, string tabNumber, string login, string orgName, string depNameOld, string depNameNew,
             string postOld, string postNew, DateTime date, string ordNumber, DateTime ordDate) 
         {
@@ -94,14 +109,12 @@ namespace DKSNotifier.Model
         }
 
         /// <inheritdoc/>
-        /// <returns></returns>
         public string GetUnique()
         {
             return string.Format("{0}_{1}_{2}_{3}", Id, TabNumber, PostNew, Date);
         }
 
         /// <inheritdoc/>
-        /// <returns></returns>
         public string TypeEntity()
         {
             return "MOVING";

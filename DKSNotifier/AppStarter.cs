@@ -2,6 +2,7 @@
 using DKSNotifier.Logs;
 using DKSNotifier.Notifiers;
 using DKSNotifier.Runners;
+using DKSNotifier.Sql;
 using DKSNotifier.Storage;
 using System;
 using System.Collections.Generic;
@@ -32,6 +33,14 @@ namespace DKSNotifier
         /// </summary>
         private IFormatter formatter;
 
+        private readonly ConfigurationStorage configurationStorage;
+
+        /// <summary>
+        /// Расположение файла хранилища
+        /// </summary>
+        private readonly string xmlBaseFile;
+
+        /*
         /// <summary>
         /// строка подключения к MS SQL Server
         /// </summary>
@@ -67,10 +76,7 @@ namespace DKSNotifier
         /// </summary>
         private string dirOut;
 
-        /// <summary>
-        /// Расположение файла хранилища
-        /// </summary>
-        private string xmlBaseFile;
+        
 
         /// <summary>
         /// Проверка уволенных сотрудников
@@ -86,48 +92,21 @@ namespace DKSNotifier
         /// Проверка отпусков сотрудников
         /// </summary>
         private bool checkVacation;
-
+        */
         #endregion
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="mssqlConnectionString"></param>
-        /// <param name="emailServerName"></param>
-        /// <param name="emailServerPort"></param>
-        /// <param name="emailFrom"></param>
-        /// <param name="emailTo"></param>
-        /// <param name="isEmailSend"></param>
-        /// <param name="dirOut"></param>
+        /// <param name="configurationStorage"></param>
         /// <param name="xmlBaseFile"></param>
-        /// <param name="checkDismissal"></param>
-        /// <param name="checkMoving"></param>
-        /// <param name="checkVacation"></param>
         public AppStarter(            
-            string mssqlConnectionString,
-            string emailServerName,
-            int emailServerPort,
-            string emailFrom,
-            string emailTo,
-            bool isEmailSend,
-            string dirOut,
-            string xmlBaseFile,
-            bool checkDismissal,
-            bool checkMoving,
-            bool checkVacation
+            ConfigurationStorage configurationStorage,
+            string xmlBaseFile
             )
-        {            
-            this.mssqlConnectionString = mssqlConnectionString;
-            this.emailServerName = emailServerName;
-            this.emailServerPort = emailServerPort;
-            this.emailFrom = emailFrom;
-            this.emailTo = emailTo;
-            this.isEmailSend = isEmailSend;
-            this.dirOut = dirOut;
+        {
+            this.configurationStorage = configurationStorage;
             this.xmlBaseFile = xmlBaseFile;
-            this.checkDismissal = checkDismissal;
-            this.checkMoving = checkMoving;
-            this.checkVacation = checkVacation;
         }
 
         /// <summary>
@@ -144,54 +123,74 @@ namespace DKSNotifier
         /// Запуск
         /// </summary>
         public void Run()
-        {
+        {            
             this.Init();
             this.log.Info("Запуск приложения");
+            var cs = this.configurationStorage;
 
             try
             {
                 StringBuilder textResult = new StringBuilder();
-                Directory.CreateDirectory(this.dirOut);
-                string htmlFilename = Path.Combine(this.dirOut, GenerateHtmlFilename());
+                Directory.CreateDirectory(cs.DirOut);
+                string htmlFilename = Path.Combine(cs.DirOut, GenerateHtmlFilename());
 
                 List<INotifier> notifiers = new List<INotifier>
-            {
-                new HtmlNotifier(htmlFilename, log)
-            };
-                if (this.isEmailSend)
                 {
-                    notifiers.Add(new EmailNotifier(this.emailServerName, this.emailServerPort, "Уведомление о движении сотрудников",
-                        this.emailFrom, this.emailTo, log));
+                    new HtmlNotifier(htmlFilename, log)
+                };
+                
+                if (cs.EmailSend)
+                {
+                    notifiers.Add(new EmailNotifier(cs.EmailServerName, cs.EmailServerPort, "Уведомление о движении сотрудников",
+                        cs.EmailFrom, cs.EmailTo, log));
                 }
 
+                string resultRunner = "";
+               
                 // уволенные
-                if (this.checkDismissal)
-                {
-                    RunnerDismissal runnerDismissal = new RunnerDismissal(this.mssqlConnectionString, this.storage, this.log,
-                        AppDomain.CurrentDomain.BaseDirectory + "SqlFiles/Dismissial.sql");
-                    textResult.AppendLine(runnerDismissal.Start("УВОЛЬНЕНИЯ", this.formatter));
+                if (cs.DismissalCheck)
+                {                    
+                    DismissalQuery dismissalQuery = new DismissalQuery(cs.CodeNO, cs.DismissalCountDays, cs.DismissalOrdType);
+                    RunnerDismissal runnerDismissal = new RunnerDismissal(cs.SqlConnectionString, this.storage, this.log, dismissalQuery);
+                    resultRunner = runnerDismissal.Start("УВОЛЬНЕНИЯ", this.formatter);
+                    if (!string.IsNullOrEmpty(resultRunner))
+                    {
+                        textResult.AppendLine(resultRunner);
+                    }
                 }
-
+                
                 // переводы
-                if (this.checkMoving)
+                if (cs.MovingCheck)
                 {
-                    RunnerMoving runnerMoving = new RunnerMoving(this.mssqlConnectionString, this.storage, this.log,
-                       AppDomain.CurrentDomain.BaseDirectory + "SqlFiles/Moving.sql");
-                    textResult.AppendLine(runnerMoving.Start("ПЕРЕВОДЫ", this.formatter));
+                    MovingQuery movingQuery = new MovingQuery(cs.CodeNO, cs.MovingCountDays, cs.MovingOrdType);
+                    RunnerMoving runnerMoving = new RunnerMoving(cs.SqlConnectionString, this.storage, this.log, movingQuery);
+                    resultRunner = runnerMoving.Start("ПЕРЕВОДЫ", this.formatter);
+                    if (!string.IsNullOrEmpty(resultRunner))
+                    {
+                        textResult.AppendLine(resultRunner);
+                    }
                 }
 
+                
                 // отпуск
-                if (this.checkVacation)
+                if (cs.VacationCheck)
                 {
-                    RunnerVacation runnerVacation = new RunnerVacation(this.mssqlConnectionString, this.storage, this.log,
-                       AppDomain.CurrentDomain.BaseDirectory + "SqlFiles/Vacation.sql");
-                    textResult.AppendLine(runnerVacation.Start("ОТПУСКА", this.formatter));
+                    VacationQuery vacationQuery = new VacationQuery(cs.CodeNO, cs.VacationCountDays, cs.VacationOrdType, cs.VacationTypeCode);
+                    RunnerVacation runnerVacation = new RunnerVacation(cs.SqlConnectionString, this.storage, this.log, vacationQuery);
+                    resultRunner = runnerVacation.Start("ОТПУСКА", this.formatter);
+                    if (!string.IsNullOrEmpty(resultRunner))
+                    {
+                        textResult.AppendLine(resultRunner);
+                    }                    
                 }
 
-                // запуск уведомлений
-                foreach (INotifier notifier in notifiers)
+                if (!string.IsNullOrEmpty(resultRunner))
                 {
-                    notifier.Exec(textResult.ToString());
+                    // запуск уведомлений
+                    foreach (INotifier notifier in notifiers)
+                    {
+                        notifier.Exec(textResult.ToString());
+                    }                    
                 }
             }
             catch (Exception ex)
@@ -201,7 +200,6 @@ namespace DKSNotifier
 
             this.log.Info("Завершение приложения");
             this.log.EmptyLines(3);
-
         }
 
         /// <summary>

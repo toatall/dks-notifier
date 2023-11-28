@@ -47,6 +47,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppStarter.cs" />
+    <Compile Include="ConfigurationStorage.cs" />
+    <Compile Include="ConfigurationManagerReader.cs" />
     <Compile Include="Formatter\IFormatter.cs" />
     <Compile Include="Notifiers\EmailNotifier.cs" />
     <Compile Include="Formatter\HtmlFormatter.cs" />
@@ -59,6 +61,11 @@
     <Compile Include="Notifiers\INotifier.cs" />
     <Compile Include="Runners\RunnerMoving.cs" />
     <Compile Include="Runners\RunnerVacation.cs" />
+    <Compile Include="Sql\DismissalQuery.cs" />
+    <Compile Include="Sql\InCauseParamSql.cs" />
+    <Compile Include="Sql\IQuery.cs" />
+    <Compile Include="Sql\VacationQuery.cs" />
+    <Compile Include="Sql\MovingQuery.cs" />
     <Compile Include="Storage\IStorage.cs" />
     <Compile Include="Storage\XmlStorage.cs" />
     <Compile Include="Program.cs" />
@@ -71,16 +78,5 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup />
-  <ItemGroup>
-    <Content Include="SqlFiles\Vacation.sql">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="SqlFiles\Moving.sql">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="SqlFiles\Dismissial.sql">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

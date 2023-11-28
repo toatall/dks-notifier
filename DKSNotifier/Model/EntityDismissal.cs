@@ -77,6 +77,21 @@ namespace DKSNotifier.Model
 
         #endregion
 
+        /// <summary>
+        /// Конструктор
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="tabNumber"></param>
+        /// <param name="login"></param>
+        /// <param name="fio"></param>
+        /// <param name="post"></param>
+        /// <param name="orgName"></param>
+        /// <param name="depIndex"></param>
+        /// <param name="depName"></param>
+        /// <param name="dismissalDate"></param>
+        /// <param name="dismissalDescription"></param>
+        /// <param name="ordNumber"></param>
+        /// <param name="ordDate"></param>
         public EntityDismissal(string id, string tabNumber, string login, string fio, string post, string orgName,
             string depIndex, string depName, DateTime dismissalDate, string dismissalDescription, string ordNumber, DateTime ordDate)
         {
@@ -95,14 +110,12 @@ namespace DKSNotifier.Model
         }
 
         /// <inheritdoc/>
-        /// <returns></returns>
         public string GetUnique()
         {
             return string.Format("{0}_{1}_{2}", Id, TabNumber, DismissalDate);
         }
 
         /// <inheritdoc/>
-        /// <returns></returns>
         public string TypeEntity()
         {
             return "DISMISSAL";

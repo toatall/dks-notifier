@@ -10,32 +10,49 @@ namespace DKSNotifier
         /// </summary>
         /// <param name="args"></param>
         static void Main(string[] args)
-        {   
-            // строка подключения к MS SQL Server
-            string connectionString = ConfigurationManager.ConnectionStrings["Mssql"].ConnectionString;
+        {
+            // настройки программы
+            ConfigurationStorage configurationStorage = new ConfigurationStorage(
+                
+                // код НО
+                codeNO: ConfigurationManagerReader.AppSettingRead("CodeNO", "0000"),
+                
+                // настройка по уволенным
+                dismissalCheck: ConfigurationManagerReader.AppSettingRead("CheckDismissial", true),
+                dismissalCountDays: ConfigurationManagerReader.AppSettingRead("DismissalCountDays", 4),
+                dismissalOrdType: ConfigurationManagerReader.AppSettingRead("DismissalOrdType"),
 
-            // параметры запуска 
-            bool checkDismissal = bool.Parse(ConfigurationManager.AppSettings["CheckDismissial"]?.ToString() ?? "True");
-            bool checkMoving = bool.Parse(ConfigurationManager.AppSettings["CheckMoving"]?.ToString() ?? "True");
-            bool checkVacation = bool.Parse(ConfigurationManager.AppSettings["CheckVacation"]?.ToString() ?? "True");
+                // настройка по перемещению
+                movingCheck: ConfigurationManagerReader.AppSettingRead("MovingCheck", true),
+                movingCountDays: ConfigurationManagerReader.AppSettingRead("MovingCountDays", 4),
+                movingOrdType: ConfigurationManagerReader.AppSettingRead("MovingOrdType"),
 
-            // настройки email
-            string emailServerName = ConfigurationManager.AppSettings["EmailServerName"];
-            int emailServerPort = int.Parse(ConfigurationManager.AppSettings["EmailServerPort"]);
-            string emailFrom = ConfigurationManager.AppSettings["EmailFrom"];
-            string emailTo = ConfigurationManager.AppSettings["EmailTo"];
-            bool isEmailSend = bool.Parse(ConfigurationManager.AppSettings["EmailSend"]?.ToString() ?? "True");
+                // настройка по отпускам
+                vacationCheck: ConfigurationManagerReader.AppSettingRead("VacationCheck", true),
+                vacationCountDays: ConfigurationManagerReader.AppSettingRead("VacationCountDays", 4),
+                vacationOrdType: ConfigurationManagerReader.AppSettingRead("VacationOrdType"),
+                vacationTypeCode: ConfigurationManagerReader.AppSettingRead("VacationTypeCode"),
 
-            // каталог сохранения html-файлов 
-            string dirOut = ConfigurationManager.AppSettings["DirOut"] ?? AppDomain.CurrentDomain.BaseDirectory + "HtmlOut";
+                // настройка почтового сервера
+                emailServerName: ConfigurationManagerReader.AppSettingRead("EmailServerName", ""),
+                emailServerPort: ConfigurationManagerReader.AppSettingRead("EmailServerPort", 25),
+                emailFrom: ConfigurationManagerReader.AppSettingRead("EmailFrom", ""), 
+                emailTo: ConfigurationManagerReader.AppSettingRead("EmailTo", ""),
+                emailSend: ConfigurationManagerReader.AppSettingRead("EmailSend", true),
 
+                // настройка выгрузки html-файла
+                useOutFile: ConfigurationManagerReader.AppSettingRead("UseOutFile", true),
+                dirOut: ConfigurationManagerReader.AppSettingRead("DirOut", ".\\HtmlOut"),
+
+                // настройка подключения к MS SQL Server
+                sqlConnectionString: ConfigurationManagerReader.ConnectionStringRead("Mssql")           
+            );
+                 
             // путь к xml-файлу для сохранения информации о полученных сведениях (для исключения повторного направления/сохранения информации)            
             string xmlBaseFile = AppDomain.CurrentDomain.BaseDirectory + "base.xml";
             
-            AppStarter appStarter = new AppStarter(connectionString, 
-                emailServerName, emailServerPort, emailFrom, emailTo, 
-                isEmailSend, dirOut, xmlBaseFile, checkDismissal, checkMoving, checkVacation);
-            appStarter.Run();
+            // запуск приложения
+            new AppStarter(configurationStorage, xmlBaseFile).Run();
         }       
 
     }
