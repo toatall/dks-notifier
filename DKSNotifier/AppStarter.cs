@@ -33,66 +33,16 @@ namespace DKSNotifier
         /// </summary>
         private IFormatter formatter;
 
+        /// <summary>
+        /// настройки
+        /// </summary>
         private readonly ConfigurationStorage configurationStorage;
 
         /// <summary>
-        /// Расположение файла хранилища
+        /// расположение файла хранилища
         /// </summary>
         private readonly string xmlBaseFile;
-
-        /*
-        /// <summary>
-        /// строка подключения к MS SQL Server
-        /// </summary>
-        private string mssqlConnectionString;
-
-        /// <summary>
-        /// адрес email-сервера
-        /// </summary>
-        private string emailServerName;
-
-        /// <summary>
-        /// порт email-сервера
-        /// </summary>
-        private int emailServerPort;
-
-        /// <summary>
-        /// адрес отправителя
-        /// </summary>
-        private string emailFrom;
-
-        /// <summary>
-        /// адрес получателя
-        /// </summary>
-        private string emailTo;
-
-        /// <summary>
-        /// направлять уведомление по email
-        /// </summary>
-        private bool isEmailSend;
-
-        /// <summary>
-        /// каталог выгрузки файлов
-        /// </summary>
-        private string dirOut;
-
-        
-
-        /// <summary>
-        /// Проверка уволенных сотрудников
-        /// </summary>
-        private bool checkDismissal;
-
-        /// <summary>
-        /// Проверка переводов сотрудников
-        /// </summary>
-        private bool checkMoving;
-
-        /// <summary>
-        /// Проверка отпусков сотрудников
-        /// </summary>
-        private bool checkVacation;
-        */
+       
         #endregion
 
         /// <summary>
@@ -170,7 +120,6 @@ namespace DKSNotifier
                         textResult.AppendLine(resultRunner);
                     }
                 }
-
                 
                 // отпуск
                 if (cs.VacationCheck)
@@ -208,7 +157,7 @@ namespace DKSNotifier
         /// <returns></returns>
         private string GenerateHtmlFilename()
         {
-            return DateTime.Now.ToString("yyyy_MM_dd") + ".html";
+            return DateTime.Now.ToString("yyyy_MM_dd__HH_mm_ss") + ".html";
         }
         
 
