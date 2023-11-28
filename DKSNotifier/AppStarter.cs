@@ -133,13 +133,17 @@ namespace DKSNotifier
                     }                    
                 }
 
-                if (!string.IsNullOrEmpty(resultRunner))
+                if (!string.IsNullOrEmpty(textResult.ToString()))
                 {
                     // запуск уведомлений
                     foreach (INotifier notifier in notifiers)
                     {
                         notifier.Exec(textResult.ToString());
                     }                    
+                }
+                else
+                {
+                    this.log.Info("Информация для уведомлений отсутствует!");
                 }
             }
             catch (Exception ex)

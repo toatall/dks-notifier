@@ -76,8 +76,8 @@ namespace DKSNotifier.Runners
         {
             foreach (EntityMoving entity in entities)
             {
-                string description = string.Format("табельный номер: {0}, логин: {1}, ФИО: {2}, дата и время: {3}",
-                    entity.TabNumber.Trim(), entity.Login.Trim(), entity.Fio.Trim(), DateTime.Now.ToString());
+                string description = string.Format("табельный номер: {0}, логин: {1}, ФИО: {2}",
+                    entity.TabNumber.Trim(), entity.Login.Trim(), entity.Fio.Trim());
                 storage.Add(entity.TypeEntity(), entity.GetUnique(), description);
             }
         }

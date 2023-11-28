@@ -61,8 +61,8 @@ namespace DKSNotifier.Sql
 			sqlCommand.Parameters.AddRange(inOrdTypes.GetParams());
 			sqlCommand.Parameters.AddRange(inVacationTypes.GetParams());
 
-            sqlCommand.Parameters.AddWithValue("@dDate1", DateTime.Now.AddDays(days * -1).ToShortDateString());
-            sqlCommand.Parameters.AddWithValue("@dDate2", DateTime.Now.AddDays(days).ToShortDateString());
+            sqlCommand.Parameters.AddWithValue("@days1", days);
+            sqlCommand.Parameters.AddWithValue("@days2", days);
         }		
 
 		/// <summary>
@@ -72,8 +72,10 @@ namespace DKSNotifier.Sql
         protected string GetQuery()
         {
             return @"
-				DECLARE @dNow DATETIME
+				DECLARE @dNow DATETIME, @dDate1 DATETIME, @dDate2 DATETIME
 				SET @dNow = GETDATE()
+				SET @dDate1 = DATEADD(DAY, -@days1, GETDATE())
+				SET @dDate2 = DATEADD(DAY,  @days2, GETDATE())
 				
 				SELECT 
 					ITV.TYPE_NAME, 
@@ -95,8 +97,8 @@ namespace DKSNotifier.Sql
 					LEFT JOIN FACES_MAIN_TBL ON FACES_MAIN_TBL.LINK = EMPLOYERS.FACE_LINK
 					LEFT JOIN EMPLOYERS_SID_TBL EMPL ON EMPL.LINK_EMPL = ITV.LINK_EMPL
 				WHERE (ORD4.LINK = ITV.ORDER_LINK  AND (ITV.ACTIVE = 1))
-					AND DEP.LINK IN (SELECT DISTINCT LINK FROM DICTIONARY_DEPARTMENT_ALL WHERE CODE = @codeNO)
-					AND ITV.DATE_BEGIN BETWEEN CAST(@dDate1 AS DATETIME) AND CAST(@dDate2 AS DATETIME)
+					AND LEFT(EMPL.[LOGIN], 4) = @codeNO
+					AND ITV.DATE_BEGIN BETWEEN @dDate1 AND @dDate2
 					AND ORD4.LINK_DEP_OWN = DEP.LINK
 					AND ORD4.TYPE IN (%ORDTYPES%)
 					AND ITV.TYPE_CODE IN (%VACATIONYPES%)

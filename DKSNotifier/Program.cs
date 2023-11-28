@@ -20,18 +20,18 @@ namespace DKSNotifier
                 // настройка по уволенным
                 dismissalCheck: ConfigurationManagerReader.AppSettingRead("CheckDismissial", true),
                 dismissalCountDays: ConfigurationManagerReader.AppSettingRead("DismissalCountDays", 4),
-                dismissalOrdType: ConfigurationManagerReader.AppSettingRead("DismissalOrdType"),
+                dismissalOrdType: ConfigurationManagerReader.AppSettingRead("DismissalOrdType", new string[] { "3", "103" }),
 
                 // настройка по перемещению
                 movingCheck: ConfigurationManagerReader.AppSettingRead("MovingCheck", true),
                 movingCountDays: ConfigurationManagerReader.AppSettingRead("MovingCountDays", 4),
-                movingOrdType: ConfigurationManagerReader.AppSettingRead("MovingOrdType"),
+                movingOrdType: ConfigurationManagerReader.AppSettingRead("MovingOrdType", new string[] { "2", "102" }),
 
                 // настройка по отпускам
                 vacationCheck: ConfigurationManagerReader.AppSettingRead("VacationCheck", true),
                 vacationCountDays: ConfigurationManagerReader.AppSettingRead("VacationCountDays", 4),
-                vacationOrdType: ConfigurationManagerReader.AppSettingRead("VacationOrdType"),
-                vacationTypeCode: ConfigurationManagerReader.AppSettingRead("VacationTypeCode"),
+                vacationOrdType: ConfigurationManagerReader.AppSettingRead("VacationOrdType", new string[] { "4", "104", "15" }),
+                vacationTypeCode: ConfigurationManagerReader.AppSettingRead("VacationTypeCode", new string[] { }),
 
                 // настройка почтового сервера
                 emailServerName: ConfigurationManagerReader.AppSettingRead("EmailServerName", ""),

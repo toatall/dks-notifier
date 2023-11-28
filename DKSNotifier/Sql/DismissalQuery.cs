@@ -49,8 +49,8 @@ namespace DKSNotifier.Sql
             sqlCommand.CommandText = GetQuery().Replace("%ORDTYPES%", inOrdTypes.GetParamNames());
             sqlCommand.Parameters.AddRange(inOrdTypes.GetParams());
 
-            sqlCommand.Parameters.AddWithValue("@dDate1", DateTime.Now.AddDays(days * -1).ToShortDateString());
-            sqlCommand.Parameters.AddWithValue("@dDate2", DateTime.Now.AddDays(days).ToShortDateString());
+            sqlCommand.Parameters.AddWithValue("@days1", days);
+            sqlCommand.Parameters.AddWithValue("@days2", days);
         }		
 
 		/// <summary>
@@ -60,8 +60,10 @@ namespace DKSNotifier.Sql
         protected string GetQuery()
         {
             return @"
-				DECLARE @dNow DATETIME
+				DECLARE @dNow DATETIME, @dDate1 DATETIME, @dDate2 DATETIME
 				SET @dNow = GETDATE()
+				SET @dDate1 = DATEADD(DAY, -@days1, GETDATE())
+				SET @dDate2 = DATEADD(DAY,  @days2, GETDATE())
 				
 				SELECT DISTINCT 		
 					 EMPLOYERS.LINK
@@ -85,10 +87,10 @@ namespace DKSNotifier.Sql
 					LEFT JOIN EMPLOYERS_SID_TBL EMPL ON EMPL.LINK_EMPL = DIS.LINK_EMPL
 					LEFT JOIN EMPLOYERS_TBL EMPLOYERS ON EMPLOYERS.LINK = EMPL.LINK_EMPL
 					LEFT JOIN FACES_MAIN_TBL ON FACES_MAIN_TBL.LINK = EMPLOYERS.FACE_LINK
-				WHERE ORD.[TYPE] IN (%ORDTYPES%)	
+				WHERE ORD.[TYPE] IN (%ORDTYPES%)
 					AND (DIS.ACTIVE = 1)	
-					AND ORD.LINK_DEP_OWN IN (SELECT DISTINCT LINK FROM DICTIONARY_DEPARTMENT_ALL WHERE CODE = @codeNO)
-					AND DIS.DIS_DATE BETWEEN CAST(@dDate1 AS DATETIME) AND CAST(@dDate2 AS DATETIME)
+					AND LEFT(EMPL.[LOGIN], 4) = @codeNO
+					AND DIS.DIS_DATE BETWEEN @dDate1 AND @dDate2 
 					AND EMPLOYERS.LINK IS NOT NULL
 					AND STF_HEAD.DEP_LINK = ORD.LINK_DEP_OWN
 				ORDER BY DIS.DIS_DATE

@@ -111,7 +111,7 @@ namespace DKSNotifier.Model
         /// <inheritdoc/>
         public string GetUnique()
         {
-            return string.Format("{0}_{1}_{2}_{3}", Id, TabNumber, PostNew, Date);
+            return string.Format("{0}_{1}_{2}_{3}", Id, TabNumber.Trim(), PostNew.Trim(), Date);
         }
 
         /// <inheritdoc/>

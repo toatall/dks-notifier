@@ -78,10 +78,9 @@ namespace DKSNotifier.Runners
         protected override void SaveToStorage(IEnumerable<IEntity> entities)
         {
             foreach(EntityDismissal entity in entities)
-            {
-                //storage.Add(entity.TypeEntity(), entity.GetUnique(), entity.TabNumber.Trim(), entity.Login, entity.Fio.Trim(), entity.DismissalDescription.Trim());
-                string description = string.Format("табельный номер: {0}, логин: {1}, ФИО: {2}, дата и время: {3}",
-                    entity.TabNumber.Trim(), entity.Login.Trim(), entity.Fio.Trim(), DateTime.Now.ToString());
+            {              
+                string description = string.Format("табельный номер: {0}, логин: {1}, ФИО: {2}",
+                    entity.TabNumber.Trim(), entity.Login.Trim(), entity.Fio.Trim());
                 storage.Add(entity.TypeEntity(), entity.GetUnique(), description);
             }
         }
