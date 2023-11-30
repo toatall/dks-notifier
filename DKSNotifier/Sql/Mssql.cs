@@ -52,9 +52,9 @@ namespace DKSNotifier.Sql
         {
             List<T> res = new List<T>();
             using (SqlConnection cnn = new SqlConnection(connectionString))
-            {                
+            {
                 cnn.Open();
-                SqlCommand command = new SqlCommand(); 
+                SqlCommand command = new SqlCommand();
                 command.Connection = cnn;
                 query.PrepareSqlCommand(command);
                 command.CommandTimeout = 60 * 5;

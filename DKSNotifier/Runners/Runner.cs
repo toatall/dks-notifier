@@ -92,7 +92,11 @@ namespace DKSNotifier.Runners
 				return text;
 			}
 			catch (Exception e)
-            {
+            {               
+				if (e.Message.ToUpper().Contains("LOGIN FAILED"))
+				{
+					throw new SqlLoginFailedException(e.Message);
+                }
 				this.log.Error("Произошла ошибка: " + e.Message);
 				this.log.Error(e.StackTrace);
             }

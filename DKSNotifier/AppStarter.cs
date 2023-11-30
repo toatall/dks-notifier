@@ -78,23 +78,23 @@ namespace DKSNotifier
             this.log.Info("Запуск приложения");
             var cs = this.configurationStorage;
 
-            try
+            StringBuilder textResult = new StringBuilder();
+            Directory.CreateDirectory(cs.DirOut);
+            string htmlFilename = Path.Combine(cs.DirOut, GenerateHtmlFilename());
+
+            List<INotifier> notifiers = new List<INotifier>
             {
-                StringBuilder textResult = new StringBuilder();
-                Directory.CreateDirectory(cs.DirOut);
-                string htmlFilename = Path.Combine(cs.DirOut, GenerateHtmlFilename());
+                new HtmlNotifier(htmlFilename, log)
+            };
 
-                List<INotifier> notifiers = new List<INotifier>
-                {
-                    new HtmlNotifier(htmlFilename, log)
-                };
-                
-                if (cs.EmailSend)
-                {
-                    notifiers.Add(new EmailNotifier(cs.EmailServerName, cs.EmailServerPort, "Уведомление о движении сотрудников",
-                        cs.EmailFrom, cs.EmailTo, log));
-                }
+            if (cs.EmailSend)
+            {
+                notifiers.Add(new EmailNotifier(cs.EmailServerName, cs.EmailServerPort, "Уведомление о движении сотрудников",
+                    cs.EmailFrom, cs.EmailTo, log));
+            }
 
+            try
+            {                
                 string resultRunner = "";
                
                 // уволенные
@@ -108,6 +108,10 @@ namespace DKSNotifier
                         textResult.AppendLine(resultRunner);
                     }
                 }
+                else
+                {
+                    this.log.Info("Запуск УВОЛЬНЕНИЯ отключен");
+                }
                 
                 // переводы
                 if (cs.MovingCheck)
@@ -120,7 +124,11 @@ namespace DKSNotifier
                         textResult.AppendLine(resultRunner);
                     }
                 }
-                
+                else
+                {
+                    this.log.Info("Запуск ПЕРЕВОДЫ отключен");
+                }
+
                 // отпуск
                 if (cs.VacationCheck)
                 {
@@ -131,6 +139,10 @@ namespace DKSNotifier
                     {
                         textResult.AppendLine(resultRunner);
                     }                    
+                }
+                else
+                {
+                    this.log.Info("Запуск ОТПУСКА отключен");
                 }
 
                 if (!string.IsNullOrEmpty(textResult.ToString()))
@@ -144,6 +156,15 @@ namespace DKSNotifier
                 else
                 {
                     this.log.Info("Информация для уведомлений отсутствует!");
+                }
+            }
+            catch (SqlLoginFailedException ex)
+            {
+                this.log.Error(string.Format("Попытка подключения к SQL Server неудачна! {0}", ex.Message));
+                // запуск уведомлений
+                foreach (INotifier notifier in notifiers)
+                {
+                    notifier.Exec(string.Format("Попытка подключения к SQL Server неудачна! {0}", ex.Message));
                 }
             }
             catch (Exception ex)

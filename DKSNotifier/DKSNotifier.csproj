@@ -64,6 +64,7 @@
     <Compile Include="Sql\DismissalQuery.cs" />
     <Compile Include="Sql\InCauseParamSql.cs" />
     <Compile Include="Sql\IQuery.cs" />
+    <Compile Include="Sql\SqlLoginFailedException.cs" />
     <Compile Include="Sql\VacationQuery.cs" />
     <Compile Include="Sql\MovingQuery.cs" />
     <Compile Include="Storage\IStorage.cs" />

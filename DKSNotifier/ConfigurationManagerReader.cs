@@ -48,7 +48,7 @@ namespace DKSNotifier
         public static bool AppSettingRead(string paramName, bool defaultValue)
         {
             bool res;
-            if (bool.TryParse(ConfigurationManager.AppSettings[paramName]?.ToString(), out res))
+            if (bool.TryParse(ConfigurationManager.AppSettings[paramName], out res))
             {
                 return res;
             }
