@@ -49,7 +49,7 @@ namespace DKSNotifier
                     dirOut: ConfigurationManagerReader.AppSettingRead("DirOut", ".\\HtmlOut"),
 
                     // настройка подключения к MS SQL Server
-                    sqlConnectionString: ConfigurationManagerReader.ConnectionStringRead("Mssqls")
+                    sqlConnectionString: ConfigurationManagerReader.ConnectionStringRead("Mssql")
                 );
 
                 // путь к xml-файлу для сохранения информации о полученных сведениях (для исключения повторного направления/сохранения информации)            

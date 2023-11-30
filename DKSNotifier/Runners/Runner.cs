@@ -31,12 +31,7 @@ namespace DKSNotifier.Runners
 		/// <summary>
 		/// объект для хранения полученных данных о сотрудниках
 		/// </summary>
-		protected readonly IStorage storage;
-
-		/// <summary>
-		/// Путь к sql-файлу
-		/// </summary>
-		protected readonly string sqlQueryFile;
+		protected readonly IStorage storage;		
 
 		/// <summary>
 		/// Экземпляр класса реализованный от IQuery
